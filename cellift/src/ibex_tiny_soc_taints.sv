@@ -20,7 +20,11 @@ module ibex_tiny_soc #(
   input logic [1:0] esc_tx_i,
 
   input  logic [31:0] hart_id_i,
-  input  logic [31:0] boot_addr_i
+  input  logic [31:0] boot_addr_i,
+
+  output logic [31:0] leakage_counter_t0,
+  output logic [31:0] hamming_weight_counter_t0,
+  output logic [31:0] hamming_distance_counter_t0
 );
   typedef logic [31:0] data_t;
   typedef logic [31:0] strb_t; // The strobe is bitwise.
@@ -81,6 +85,9 @@ module ibex_tiny_soc #(
 
   logic core_sleep_o_t0;
   logic [127:0] crash_dump_o_t0;
+  logic [31:0] leakage_counter_core_t0;
+  logic [31:0] hamming_weight_counter_core_t0;
+  logic [31:0] hamming_distance_counter_core_t0;
   logic [17:0] data_mem_addr_o_t0;
   logic data_mem_req_o_t0;
   logic [31:0] data_mem_strb_o_t0;
@@ -170,8 +177,16 @@ module ibex_tiny_soc #(
     .debug_req_i_t0('0),
     .test_en_i_t0('0),
     .data_mem_gnt_i_t0('0),
-    .esc_tx_i_t0('0)
+    .esc_tx_i_t0('0),
+    .leakage_counter_t0(leakage_counter_core_t0),
+    .hamming_weight_counter_t0(hamming_weight_counter_core_t0),
+    .hamming_distance_counter_t0(hamming_distance_counter_core_t0)
   );
+
+  // Export deep core counters at top-level for stable CSV sampling.
+  assign leakage_counter_t0 = leakage_counter_core_t0;
+  assign hamming_weight_counter_t0 = hamming_weight_counter_core_t0;
+  assign hamming_distance_counter_t0 = hamming_distance_counter_core_t0;
 
   //////////////////////////////
   // Instruction ROM instance //
@@ -230,11 +245,11 @@ module ibex_tiny_soc #(
     .wmask_i(data_mem_strb),
     .rdata_o(data_mem_rdata),
 
-    .req_i_taint(instr_mem_req_o_t0),
-    .write_i_taint(instr_mem_we_o_t0),
-    .addr_i_taint(instr_mem_addr_o_t0),
-    .wdata_i_taint(instr_mem_wdata_o_t0),
-    .wmask_i_taint(instr_mem_strb_o_t0),
+    .req_i_taint(data_mem_req_o_t0),
+    .write_i_taint(data_mem_we_o_t0),
+    .addr_i_taint(data_mem_addr_o_t0),
+    .wdata_i_taint(data_mem_wdata_o_t0),
+    .wmask_i_taint(data_mem_strb_o_t0),
     .rdata_o_taint(data_mem_rdata_t0)
   );
 

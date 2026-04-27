@@ -1,0 +1,9 @@
+# Taint data for AES-128 masked key scenario (Key 2)
+# Format: <taint_color> <address> <num_bytes> <taint_mask>
+# All values in hexadecimal
+#
+# Taint the 16-byte key_share0 at address 0xC00
+# This will mark the masked key share as tainted, allowing CellIFT
+# to track how the reconstructed key propagates through AES.
+#
+0 C00 10 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF

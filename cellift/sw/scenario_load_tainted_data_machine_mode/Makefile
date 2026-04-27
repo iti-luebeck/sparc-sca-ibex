@@ -1,4 +1,4 @@
-RISCV_PREFIX = riscv32-unknown-elf
+RISCV_PREFIX = riscv64-unknown-elf
 
 
 RV_ARCH_FLAGS ?= -march=rv64g -mabi=lp64

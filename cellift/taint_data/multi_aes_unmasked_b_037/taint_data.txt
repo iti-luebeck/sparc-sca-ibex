@@ -1,0 +1,9 @@
+# Taint data for AES-128 scenario
+# Format: <taint_color> <address> <num_bytes> <taint_mask>
+# All values in hexadecimal
+#
+# Taint the 16-byte AES key at address 0xC00
+# This will mark the secret key as tainted, allowing CellIFT
+# to track how the key propagates through the AES algorithm.
+#
+0 C00 10 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF

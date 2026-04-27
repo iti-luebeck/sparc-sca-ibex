@@ -1,0 +1,19 @@
+# Taint data for 3x3 Matrix-Vector Multiplication scenario
+# Format: <taint_color> <address> <num_bytes> <taint_mask>
+# All values in hexadecimal
+#
+# Taint the 3x3 weight matrix
+# Total size: 0x09 (9 bytes) covering:
+#   - weights: 9 bytes (3x3 uint8_t matrix)
+#
+# This marks the weight matrix as tainted, allowing CellIFT
+# to track how the secret weights propagate through multiplication.
+#
+# NOTE: Verify the address by running:
+#   make show-sections
+# Look for the .tainted_data section address.
+#
+# Taint mask: all bits set for the 9-byte region
+# 9 bytes = 72 bits = 18 hex characters
+#
+0 400 9 FFFFFFFFFFFFFFFFFF

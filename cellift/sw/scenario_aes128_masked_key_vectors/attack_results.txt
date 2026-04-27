@@ -1,0 +1,30 @@
+CPA Attack Results
+========================================
+
+Number of traces: 999
+Trace length: 605
+Trace type: HW
+Power model: HW
+Alignment: none
+
+Recovered key: ce214285ecc27dedd5a3934d9df6746a
+Actual key:    2b7e151628aed2a6abf7158809cf4f3c
+Correct bytes: 0/16
+
+Per-byte results:
+  Byte  0: 0xce (actual: 0x2b, rank: 14) ✗
+  Byte  1: 0x21 (actual: 0x7e, rank: 61) ✗
+  Byte  2: 0x42 (actual: 0x15, rank: 194) ✗
+  Byte  3: 0x85 (actual: 0x16, rank: 87) ✗
+  Byte  4: 0xec (actual: 0x28, rank: 255) ✗
+  Byte  5: 0xc2 (actual: 0xae, rank: 26) ✗
+  Byte  6: 0x7d (actual: 0xd2, rank: 43) ✗
+  Byte  7: 0xed (actual: 0xa6, rank: 241) ✗
+  Byte  8: 0xd5 (actual: 0xab, rank: 168) ✗
+  Byte  9: 0xa3 (actual: 0xf7, rank: 204) ✗
+  Byte 10: 0x93 (actual: 0x15, rank: 236) ✗
+  Byte 11: 0x4d (actual: 0x88, rank: 126) ✗
+  Byte 12: 0x9d (actual: 0x09, rank: 195) ✗
+  Byte 13: 0xf6 (actual: 0xcf, rank: 169) ✗
+  Byte 14: 0x74 (actual: 0x4f, rank: 237) ✗
+  Byte 15: 0x6a (actual: 0x3c, rank: 119) ✗

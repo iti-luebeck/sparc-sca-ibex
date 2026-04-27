@@ -5,3 +5,15 @@ statistics
 Bender.lock
 results.txt
 fusesoc.conf
+# Analysis outputs (reproducible by running the evaluation pipeline)
+*.npy
+*.png
+*.log
+build/
+sw/*/build/
+# Simulation trace data (large CSVs, reproducible)
+results_*/
+# FST/VCD simulation traces
+*.fst
+*.vcd
+*.vcd.gz

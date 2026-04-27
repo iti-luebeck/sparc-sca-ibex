@@ -20,7 +20,9 @@ module ibex_tiny_soc #(
   input logic [1:0] esc_tx_i,
 
   input  logic [31:0] hart_id_i,
-  input  logic [31:0] boot_addr_i
+  input  logic [31:0] boot_addr_i,
+
+  output [31:0] leakage_counter_t0
 );
   typedef logic [31:0] data_t;
   typedef logic [31:0] strb_t; // The strobe is bitwise.
@@ -74,6 +76,24 @@ module ibex_tiny_soc #(
   strb_t data_mem_strb;
   logic  data_mem_we;
   data_t data_mem_rdata;
+
+  // Taint signals from cellift core (for leakage observation)
+  logic [31:0] data_mem_wdata_o_t0;
+  logic [17:0] data_mem_addr_o_t0;
+  logic data_mem_req_o_t0;
+
+  // Leakage counter accumulation logic
+  // Increments when tainted data is written to memory
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      leakage_counter_t0 <= 32'h0;
+    end else begin
+      // Counting cycles where tainted data is being accessed in memory subsystem
+      if (data_mem_req_o_t0) begin  // When memory is being accessed and data has taint
+        leakage_counter_t0 <= leakage_counter_t0 + 1;
+      end
+    end
+  end
 
   cellift_rv_core_ibex_mem_top i_cellift_rv_core_ibex_mem_top (
     // Regular signals
@@ -151,6 +171,7 @@ module ibex_tiny_soc #(
     .Depth(DataMemDepth)
   ) i_data_sram (
     .clk_i,
+    .rst_ni,
 
     .req_i(data_mem_req),
     .write_i(data_mem_we),

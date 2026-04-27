@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Batch-compile generated Ibex scenario directories under sw/<PREFIX>*.
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PREFIX="${1:?Usage: compile_scenarios.sh <PREFIX>}"
+SW_DIR="${SCRIPT_DIR}/sw"
+
+mapfile -t dirs < <(find "$SW_DIR" -maxdepth 1 -mindepth 1 -type d -name "${PREFIX}*" | sort)
+
+if [[ ${#dirs[@]} -eq 0 ]]; then
+    echo "ERROR: no scenario directories found for prefix '${PREFIX}'"
+    exit 1
+fi
+
+echo "Compiling ${#dirs[@]} scenarios for prefix '${PREFIX}'"
+
+pass=0
+fail=0
+for dir in "${dirs[@]}"; do
+    name="$(basename "$dir")"
+    log="${dir}/build.log"
+    if make -C "$dir" --no-print-directory build/app.elf > "$log" 2>&1; then
+        echo "  OK   $name"
+        pass=$((pass + 1))
+    else
+        echo "  FAIL $name (see $log)"
+        fail=$((fail + 1))
+    fi
+done
+
+echo ""
+echo "Summary: ${pass} passed, ${fail} failed"
+if [[ "$fail" -ne 0 ]]; then
+    exit 1
+fi
