@@ -1,4 +1,5 @@
 # Copyright 2022 Flavien Solt, ETH Zurich.
+# Copyright (C) 2024-2026 Andrija Neskovic, University of Luebeck
 # Licensed under the General Public License, Version 3.0, see LICENSE for details.
 # SPDX-License-Identifier: GPL-3.0-only
 
@@ -6,11 +7,15 @@ ifeq "" "$(CELLIFT_ENV_SOURCED)"
 $(error Please re-source env.sh first, in the meta repo, and run from there, not this repo. See README.md in the meta repo)
 endif
 
-CURR_OPENTITAN_ROOT = $(OPENTITAN_ROOT) # `small` config
+CURR_OPENTITAN_ROOT = $(OPENTITAN_ROOT)
 
 ifeq "" "$(CURR_OPENTITAN_ROOT)"
-$(error CURR_OPENTITAN_ROOT env variable not set. Please re-source env.sh first, in the meta repo, and run from there, not this repo. See README.md in the meta repo)
+$(error OPENTITAN_ROOT is not set. Source env.sh or export OPENTITAN_ROOT before running make.)
 endif
+
+# Paths used by the evaluation simulator build rules.
+IBEX_CORES_ROOT   = ..
+OPENTITAN_HW_ROOT = $(OPENTITAN_ROOT)/hw
 
 #
 # 0. Install the Python requirements
@@ -176,3 +181,44 @@ STATISTICS_TARGETS=$(patsubst %,statistics/%.log, $(TARGET_NAMES))
 
 $(STATISTICS_TARGETS): statistics/%.log: $(CELLIFT_YS)/statistics.ys.tcl generated/sv2v_out.v | statistics
 	DECOMPOSE_MEMORY=1 VERILOG_INPUT=$(word 2,$^) INSTRUMENTATION=$* TOP_MODULE=$(TOP_MODULE) $(CELLIFT_META_ROOT)/resourcewrapper $(RESOURCEWRAPPER_TAG) $* stat yosys -c $< -l $@
+
+# ── Evaluation simulators ─────────────────────────────────────────────────────
+# Copyright (C) 2024-2026 Andrija Neskovic, University of Luebeck
+#
+# These four simulators are the ones required by run_full_evaluation.sh and
+# run_full_audit.sh.  The targets depend on the instrumented RTL, which is built
+# by the Yosys pass above (generated/out/cellift.sv, generated/out/vanilla.sv).
+# Running `make build-eval-sims` therefore triggers the full chain from RTL
+# preprocessing through Yosys instrumentation to Verilator compilation.
+
+EVAL_SIM_CSVLOG      = build/run_cellift_csvlog_0.1/default-verilator/$(TOP_EXECUTABLE_NAME)
+EVAL_SIM_FASTTRACE   = build/run_cellift_fasttrace_0.1/default-verilator/$(TOP_EXECUTABLE_NAME)
+EVAL_SIM_VANILLA     = build/run_vanilla_trace_0.1/default-verilator/$(TOP_EXECUTABLE_NAME)
+EVAL_SIM_VANILLA_FST = build/run_vanilla_trace_fst_0.1/default-verilator/$(TOP_EXECUTABLE_NAME)
+
+.PHONY: build-eval-sims
+build-eval-sims: $(EVAL_SIM_CSVLOG) $(EVAL_SIM_FASTTRACE) $(EVAL_SIM_VANILLA) $(EVAL_SIM_VANILLA_FST)
+
+$(EVAL_SIM_CSVLOG): generated/out/cellift.sv generated/out/cellift.sv.log | logs
+	rm -f fusesoc.conf
+	fusesoc library add run_cellift_csvlog .
+	fusesoc --cores-root=. --cores-root=$(IBEX_CORES_ROOT) \
+	    --cores-root=$(OPENTITAN_HW_ROOT) run --build run_cellift_csvlog
+
+$(EVAL_SIM_FASTTRACE): generated/out/cellift.sv generated/out/cellift.sv.log | logs
+	rm -f fusesoc.conf
+	fusesoc library add run_cellift_fasttrace .
+	fusesoc --cores-root=. --cores-root=$(IBEX_CORES_ROOT) \
+	    --cores-root=$(OPENTITAN_HW_ROOT) run --build run_cellift_fasttrace
+
+$(EVAL_SIM_VANILLA): generated/out/vanilla.sv generated/out/vanilla.sv.log | logs
+	rm -f fusesoc.conf
+	fusesoc library add run_vanilla_trace .
+	fusesoc --cores-root=. --cores-root=$(IBEX_CORES_ROOT) \
+	    --cores-root=$(OPENTITAN_HW_ROOT) run --build run_vanilla_trace
+
+$(EVAL_SIM_VANILLA_FST): generated/out/vanilla.sv generated/out/vanilla.sv.log | logs
+	rm -f fusesoc.conf
+	fusesoc library add run_vanilla_trace_fst .
+	fusesoc --cores-root=. --cores-root=$(IBEX_CORES_ROOT) \
+	    --cores-root=$(OPENTITAN_HW_ROOT) run --build run_vanilla_trace_fst

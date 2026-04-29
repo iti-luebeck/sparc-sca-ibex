@@ -21,7 +21,8 @@ SCENARIO_A="${3:-scenario_aes128_key1}"
 SCENARIO_B="${4:-scenario_aes128_key2}"
 shift 4 2>/dev/null || true
 
-ENV_SH="/mnt/nvme1n1p1/cellift-meta-leakage/env.sh"
+: "${SPARC_SCA_ROOT:=$(cd "${SCRIPT_DIR}/../../.." && pwd)}"
+ENV_SH="${SPARC_SCA_ROOT}/env.sh"
 CSV_BIN="${SCRIPT_DIR}/build/run_cellift_csvlog_0.1/default-verilator/Vibex_tiny_soc"
 
 ELF_A="${SCRIPT_DIR}/sw/${SCENARIO_A}/build/app.elf"
@@ -37,7 +38,9 @@ if [[ ! "$SIMLEN" =~ ^[0-9]+$ ]] || [[ "$SIMLEN" -lt 1 ]]; then
     exit 1
 fi
 
-source "$ENV_SH"
+if [[ "${CELLIFT_ENV_SOURCED:-}" != "yes" ]]; then
+    source "$ENV_SH"
+fi
 
 for f in "$CSV_BIN" "$ELF_A" "$ELF_B" "$TAINT_A" "$TAINT_B"; do
     if [[ ! -f "$f" ]]; then

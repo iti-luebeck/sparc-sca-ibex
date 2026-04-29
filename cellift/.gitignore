@@ -17,3 +17,6 @@ results_*/
 *.fst
 *.vcd
 *.vcd.gz
+# Generated scenario sets (recreated by gen_scenarios.py + compile_scenarios.sh)
+sw/multi_*/
+sw/_manifests/
