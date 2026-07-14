@@ -13,6 +13,7 @@ build/
 sw/*/build/
 # Simulation trace data (large CSVs, reproducible)
 results_*/
+results/
 # FST/VCD simulation traces
 *.fst
 *.vcd

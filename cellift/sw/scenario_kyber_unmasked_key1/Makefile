@@ -1,4 +1,4 @@
-RISCV_TOOLS = /mnt/nvme1n1p1/chipyard-1.11.0/.conda-env/riscv-tools
+RISCV_TOOLS ?= /mnt/nvme1n1p1/chipyard-1.11.0/.conda-env/riscv-tools
 RISCV_PREFIX = $(RISCV_TOOLS)/bin/riscv64-unknown-elf
 
 # Ibex is RV32IMC (includes compressed extension)

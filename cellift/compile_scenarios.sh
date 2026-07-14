@@ -28,6 +28,14 @@ if ! command -v riscv64-unknown-elf-gcc >/dev/null 2>&1; then
     fi
 fi
 
+# When running inside Docker (or any env where $RISCV is set), pass RISCV_TOOLS
+# as a make override so Kyber Makefiles use the container toolchain instead of
+# the hardcoded host path.
+MAKE_RISCV_OVERRIDE=()
+if [[ -n "${RISCV:-}" ]]; then
+    MAKE_RISCV_OVERRIDE=("RISCV_TOOLS=${RISCV}")
+fi
+
 # ── Find matching scenario directories ────────────────────────────────────────
 mapfile -t dirs < <(find "$SW_DIR" -maxdepth 1 -type d -name "${PREFIX}*" | sort)
 
@@ -48,7 +56,7 @@ for dir in "${dirs[@]}"; do
     name="$(basename "$dir")"
     log="${dir}/build.log"
 
-    if make -C "$dir" --no-print-directory > "$log" 2>&1; then
+    if make -C "$dir" --no-print-directory "${MAKE_RISCV_OVERRIDE[@]}" > "$log" 2>&1; then
         echo "  ✅  $name"
         pass=$((pass + 1))
     else
@@ -69,7 +77,8 @@ if [[ $fail -gt 0 ]]; then
         echo "    - $n"
     done
     echo ""
-    echo "  Tip: check the toolchain path in sw/<scenario>/Makefile"
-    echo "       Expected: /mnt/nvme1n1p1/chipyard-1.11.0/.conda-env/riscv-tools/bin/"
+    echo "  Tip: inside Docker, RISCV is set automatically and passed to make."
+    echo "       On the host, ensure riscv64-unknown-elf-gcc is on PATH or set:"
+    echo "         export RISCV=/path/to/riscv-toolchain"
     exit 1
 fi

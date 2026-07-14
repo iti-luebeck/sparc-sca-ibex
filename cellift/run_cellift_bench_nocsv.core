@@ -1,0 +1,50 @@
+CAPI=2:
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2024-2026 Andrija Neskovic, University of Luebeck
+name: "::run_cellift_bench_nocsv:0.1"
+description: "Benchmark: CellIFT-instrumented Ibex, -O2, no trace, no CSV — measures pure instrumentation overhead"
+
+filesets:
+  files_cells:
+    depend:
+      - lowrisc:ibex:ibex_top
+      - lowrisc:prim:all
+      - lowrisc:prim:clock_gating
+      - lowrisc:ip:tlul
+      - lowrisc:tlul:adapter_host
+      - lowrisc:ip:lc_ctrl_pkg
+      - lowrisc:prim:lc_sync
+    files:
+      - src/ift_sram_mem.sv
+      - src/ift_rom_mem.sv
+      - src/ibex_tiny_soc_taints.sv
+      - generated/out/cellift.sv
+    file_type: systemVerilogSource
+
+  files_dv:
+    files:
+      - $CELLIFT_DESIGN_PROCESSING_ROOT/common/dv/elf.h : {is_include_file: true}
+      - $CELLIFT_DESIGN_PROCESSING_ROOT/common/dv/taintloader.cc
+      - $CELLIFT_DESIGN_PROCESSING_ROOT/common/dv/elfloader.cc
+      - $CELLIFT_DESIGN_PROCESSING_ROOT/common/dv/common_functions.cc
+      - $CELLIFT_DESIGN_PROCESSING_ROOT/common/dv/ticks.h : {is_include_file: true}
+      - dv/testbench.h : {is_include_file: true}
+      - dv/toplevel.cc
+    file_type: cppSource
+
+targets:
+  default:
+    default_tool: verilator
+    filesets:
+      - files_cells
+      - files_dv
+    toplevel: ibex_tiny_soc
+    tools:
+      verilator:
+        mode: cc
+        verilator_options:
+          - '-CFLAGS "-std=c++11 -Wall -DTOPLEVEL_NAME=ibex_tiny_soc -O2"'
+          - '-LDFLAGS "-pthread -lutil"'
+          - "-Wall"
+          - "-Wno-PINCONNECTEMPTY"
+          - "-Wno-fatal"

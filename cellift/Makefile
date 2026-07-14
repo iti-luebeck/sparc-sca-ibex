@@ -89,6 +89,13 @@ YOSYS_INSTRUMENTATION_TARGETS_SV=$(patsubst %,generated/out/%.sv, cellift glift 
 
 $(YOSYS_INSTRUMENTATION_TARGETS_SV): generated/out/%.sv: $(CELLIFT_YS)/instrument.ys.tcl generated/sv2v_out.v | generated/out logs
 	DECOMPOSE_MEMORY=1 VERILOG_INPUT=$(word 2,$^) INSTRUMENTATION=$* VERILOG_OUTPUT=$@ TOP_MODULE=$(TOP_MODULE) $(CELLIFT_META_ROOT)/resourcewrapper $(RESOURCEWRAPPER_TAG) $* instr yosys -c $< -l $@.log
+
+# CellIFT without power-leakage counters (for HD/HW overhead benchmarking).
+generated/out/cellift_taint_only.sv: $(CELLIFT_YS)/instrument.ys.tcl generated/sv2v_out.v | generated/out logs
+	DECOMPOSE_MEMORY=1 VERILOG_INPUT=$(word 2,$^) INSTRUMENTATION=cellift TRACK_POWER_LEAKAGE=0 VERILOG_OUTPUT=$@ TOP_MODULE=$(TOP_MODULE) $(CELLIFT_META_ROOT)/resourcewrapper $(RESOURCEWRAPPER_TAG) cellift_taint_only instr yosys -c $< -l $@.log
+
+generated/out/cellift_taint_only.sv.log: | generated/out
+	touch $@
 #
 # Verilator simulation
 #
@@ -222,3 +229,42 @@ $(EVAL_SIM_VANILLA_FST): generated/out/vanilla.sv generated/out/vanilla.sv.log |
 	fusesoc library add run_vanilla_trace_fst .
 	fusesoc --cores-root=. --cores-root=$(IBEX_CORES_ROOT) \
 	    --cores-root=$(OPENTITAN_HW_ROOT) run --build run_vanilla_trace_fst
+
+# ── Benchmark simulators ──────────────────────────────────────────────────────
+# Three variants with matching -O2 optimisation and no --trace flag, so that
+# timing differences reflect instrumentation overhead alone:
+#   vanilla_bench     — unmodified Ibex (true baseline)
+#   cellift_bench_nocsv — CellIFT instrumented, no output (pure RTL overhead)
+#   cellift_bench_csv   — CellIFT instrumented, CSV per-cycle (full HD/HW pipeline)
+
+BENCH_SIM_VANILLA    = build/run_vanilla_bench_0.1/default-verilator/$(TOP_EXECUTABLE_NAME)
+BENCH_SIM_TAINT_ONLY = build/run_cellift_bench_taint_only_0.1/default-verilator/$(TOP_EXECUTABLE_NAME)
+BENCH_SIM_NOCSV      = build/run_cellift_bench_nocsv_0.1/default-verilator/$(TOP_EXECUTABLE_NAME)
+BENCH_SIM_CSV        = build/run_cellift_bench_csv_0.1/default-verilator/$(TOP_EXECUTABLE_NAME)
+
+.PHONY: build-bench-sims
+build-bench-sims: $(BENCH_SIM_VANILLA) $(BENCH_SIM_TAINT_ONLY) $(BENCH_SIM_NOCSV) $(BENCH_SIM_CSV)
+
+$(BENCH_SIM_VANILLA): generated/out/vanilla.sv generated/out/vanilla.sv.log | logs
+	rm -f fusesoc.conf
+	fusesoc library add run_vanilla_bench .
+	fusesoc --cores-root=. --cores-root=$(IBEX_CORES_ROOT) \
+	    --cores-root=$(OPENTITAN_HW_ROOT) run --build run_vanilla_bench
+
+$(BENCH_SIM_TAINT_ONLY): generated/out/cellift_taint_only.sv generated/out/cellift_taint_only.sv.log | logs
+	rm -f fusesoc.conf
+	fusesoc library add run_cellift_bench_taint_only .
+	fusesoc --cores-root=. --cores-root=$(IBEX_CORES_ROOT) \
+	    --cores-root=$(OPENTITAN_HW_ROOT) run --build run_cellift_bench_taint_only
+
+$(BENCH_SIM_NOCSV): generated/out/cellift.sv generated/out/cellift.sv.log | logs
+	rm -f fusesoc.conf
+	fusesoc library add run_cellift_bench_nocsv .
+	fusesoc --cores-root=. --cores-root=$(IBEX_CORES_ROOT) \
+	    --cores-root=$(OPENTITAN_HW_ROOT) run --build run_cellift_bench_nocsv
+
+$(BENCH_SIM_CSV): generated/out/cellift.sv generated/out/cellift.sv.log | logs
+	rm -f fusesoc.conf
+	fusesoc library add run_cellift_bench_csv .
+	fusesoc --cores-root=. --cores-root=$(IBEX_CORES_ROOT) \
+	    --cores-root=$(OPENTITAN_HW_ROOT) run --build run_cellift_bench_csv
