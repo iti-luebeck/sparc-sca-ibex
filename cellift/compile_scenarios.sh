@@ -20,17 +20,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PREFIX="${1:?Usage: compile_scenarios.sh <PREFIX>}"
 SW_DIR="${SCRIPT_DIR}/sw"
 
-# Prefer Chipyard conda toolchain when not already on PATH.
+# Prefer an explicitly pointed-at toolchain when one is not already on PATH.
+# SPARC_SCA_RISCV_BIN (or $RISCV) is the escape hatch for a toolchain installed
+# outside PATH, e.g. a Chipyard conda env. This used to be a hardcoded path from
+# the machine the scripts were written on, which nobody else has.
 if ! command -v riscv64-unknown-elf-gcc >/dev/null 2>&1; then
-    CANDIDATE_TC="/mnt/nvme1n1p1/chipyard-1.11.0/.conda-env/riscv-tools/bin"
-    if [[ -x "${CANDIDATE_TC}/riscv64-unknown-elf-gcc" ]]; then
+    CANDIDATE_TC="${SPARC_SCA_RISCV_BIN:-${RISCV:+${RISCV}/bin}}"
+    if [[ -n "${CANDIDATE_TC}" && -x "${CANDIDATE_TC}/riscv64-unknown-elf-gcc" ]]; then
         export PATH="${CANDIDATE_TC}:${PATH}"
     fi
 fi
 
 # When running inside Docker (or any env where $RISCV is set), pass RISCV_TOOLS
-# as a make override so Kyber Makefiles use the container toolchain instead of
-# the hardcoded host path.
+# as a make override so the scenario Makefiles use the container toolchain.
 MAKE_RISCV_OVERRIDE=()
 if [[ -n "${RISCV:-}" ]]; then
     MAKE_RISCV_OVERRIDE=("RISCV_TOOLS=${RISCV}")

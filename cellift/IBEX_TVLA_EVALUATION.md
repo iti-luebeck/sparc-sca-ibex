@@ -1,18 +1,18 @@
 # Ibex CellIFT TVLA Evaluation (Core Pipeline)
 
 Authoritative guide for the Ibex CellIFT workflow in this directory:
-/mnt/nvme1n1p1/cellift-designs/cellift-ibex/cellift
+designs/ibex/cellift
 
 ## 1) Environment Setup
 
-cd /mnt/nvme1n1p1/cellift-designs/cellift-ibex/cellift
-. /mnt/nvme1n1p1/cellift-meta-leakage/env.sh
+cd designs/ibex/cellift
+. env.sh
 make installrequirements
 
 Core simulation binaries used by this pipeline:
 
 - build/run_cellift_csvlog_0.1/default-verilator/Vibex_tiny_soc
-- build/run_cellift_trace_0.1/default-verilator/Vibex_tiny_soc
+- build/run_cellift_fasttrace_0.1/default-verilator/Vibex_tiny_soc
 - build/run_vanilla_trace_0.1/default-verilator/Vibex_tiny_soc
 
 If missing, build CSV logger with:

@@ -45,7 +45,7 @@ targets:
       verilator:
         mode: cc
         verilator_options:
-          - '-CFLAGS "-std=c++11 -Wall -DIS_PASSTHROUGH -DTOPLEVEL_NAME=ibex_tiny_soc -g -O0"'
+          - '-CFLAGS "-std=c++11 -Wall -DIS_PASSTHROUGH -DTOPLEVEL_NAME=ibex_tiny_soc -g -O2"'
           - '-LDFLAGS "-pthread -lutil"'
           - "-Wall"
           - "-Wno-PINCONNECTEMPTY"

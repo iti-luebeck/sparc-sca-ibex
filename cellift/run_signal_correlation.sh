@@ -50,6 +50,9 @@ SCENARIO_B="${2:-scenario_aes128_unmasked_key2}"
 CYCLES="${3:-36 37 38 39 40}"
 SIMLEN="${4:-200}"
 OUT_PREFIX="${5:-signal_out}"
+# How many signals to report per cycle. Raised externally when static taint
+# state would otherwise fill the list and hide the activity (_leak0) signals.
+SIG_TOP="${SIG_TOP:-20}"
 SIGNAL_JSON="${OUT_PREFIX}_signals.json"
 INSTR_JSON="${OUT_PREFIX}_instructions.json"
 DATA_SIGNAL_JSON="${OUT_PREFIX}_data_signals.json"
@@ -250,7 +253,7 @@ echo "── Step 2: Signal-level leakage (leakage_signals.py) ─────�
 python3 "${SCRIPT_DIR}/leakage_signals.py" \
     "$VCD_A" "$VCD_B" \
     --cycles $CYCLES \
-    --top 20 \
+    --top "$SIG_TOP" \
     --plot \
     --out "$OUT_PREFIX" \
     --out-json "$SIGNAL_JSON"

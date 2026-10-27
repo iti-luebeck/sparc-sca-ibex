@@ -230,7 +230,10 @@ def find_tool(name: str) -> str:
     candidates = [
         f"{riscv_prefix}/bin/{name}" if riscv_prefix else None,
         str(Path.home() / "prefix-cellift" / "riscv" / "bin" / name),
-        f"/mnt/nvme1n1p1/chipyard-1.11.0/.conda-env/riscv-tools/bin/{name}",
+        # Escape hatch for a toolchain outside PATH; this used to be a
+        # hardcoded path from the authoring machine.
+        (f"{os.environ['SPARC_SCA_RISCV_BIN']}/{name}"
+         if os.environ.get("SPARC_SCA_RISCV_BIN") else None),
     ]
     for c in candidates:
         if c and Path(c).is_file():

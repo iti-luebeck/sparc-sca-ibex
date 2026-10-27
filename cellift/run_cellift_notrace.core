@@ -50,7 +50,7 @@ targets:
           # - '--trace-structs'
           # - '--trace-params'
           # - '--trace-max-array 1024'
-          - '-CFLAGS "-std=c++11 -Wall -DTOPLEVEL_NAME=ibex_tiny_soc -g -O0"'
+          - '-CFLAGS "-std=c++11 -Wall -DTOPLEVEL_NAME=ibex_tiny_soc -g -O2"'
           - '-LDFLAGS "-pthread -lutil"'
           - "-Wall"
           - "-Wno-PINCONNECTEMPTY"

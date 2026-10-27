@@ -45,8 +45,32 @@ targets:
       verilator:
         mode: cc
         verilator_options:
-          - '--trace'
-          - '--trace-max-array 1024'
+          # NO --trace here, deliberately. This target logs the three
+          # leakage counters to CSV; it must never write a waveform.
+          #
+          # The trap is that toplevel_csv.cc has no dump call of its own, so
+          # the tracing is invisible at the call site: it includes the shared
+          # testbench.h, whose tick() carries three trace_->dump() calls plus a
+          # trace_->flush() under #if VM_TRACE (dv/testbench.h:75-92), and
+          # --trace is what defines VM_TRACE. So with the flag the CSV logger
+          # built a VerilatedVcdC, registered every signal within kTraceLevel=6
+          # of the top (:41), and dumped and flushed a full VCD every cycle.
+          # It stayed unnoticed because the runners point TRACEFILE at
+          # /dev/null (run_tvla.sh:65,75; run_multi_trace_tvla.sh:163) -- the
+          # waveform was generated in full and discarded at the device.
+          #
+          # On the hierarchical netlist that cost ~6x per trace (6s -> 1s for
+          # 27k cycles). On a POWER_LEAKAGE_FLATTEN=1 build it is fatal:
+          # flattening puts the entire core -- every internal signal AND its
+          # _t0 taint shadow -- at depth 1 of one module, so the registered
+          # signal set explodes. Measured: 26 GB resident / 37 GB virtual,
+          # OOM-killed at SIMLEN=100, while SIMLEN=50 completed instantly.
+          #
+          # Inherited, not introduced here: the flag was present when this
+          # target was first committed (ibex 3da43dd, 2026-04-27) and the same
+          # copy-paste sits in the Proteus and Rocket csvlog cores.
+          # Waveforms for attribution come from the separate
+          # vanilla/fasttrace targets, which pass --trace on purpose.
           - '-CFLAGS "-std=c++11 -Wall -DTOPLEVEL_NAME=ibex_tiny_soc -O2"'
           - '-LDFLAGS "-pthread -lutil"'
           - "-Wall"

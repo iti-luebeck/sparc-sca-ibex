@@ -14,7 +14,10 @@ SCENARIO="${3:-scenario_aes128_key1}"
 
 : "${SPARC_SCA_ROOT:=$(cd "${SCRIPT_DIR}/../../.." && pwd)}"
 ENV_SH="${SPARC_SCA_ROOT}/env.sh"
-SIM_BIN="${SCRIPT_DIR}/build/run_cellift_trace_0.1/default-verilator/Vibex_tiny_soc"
+# fasttrace, not trace: both targets pass identical Verilator trace flags, so
+# the VCD is byte-for-byte equivalent -- they differ only in host g++ opt
+# level (-O2 vs -g -O0). Attribution runs this in bulk, so -O0 was pure loss.
+SIM_BIN="${SCRIPT_DIR}/build/run_cellift_fasttrace_0.1/default-verilator/Vibex_tiny_soc"
 ELF="${SCRIPT_DIR}/sw/${SCENARIO}/build/app.elf"
 TAINT="${SCRIPT_DIR}/taint_data/${SCENARIO}/taint_data.txt"
 
