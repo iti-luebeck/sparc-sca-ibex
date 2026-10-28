@@ -6,4 +6,4 @@
 # This will mark the secret key as tainted, allowing CellIFT
 # to track how the key propagates through the AES algorithm.
 #
-0 C00 10 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+0 C00 16 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF

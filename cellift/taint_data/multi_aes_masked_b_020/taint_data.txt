@@ -6,4 +6,4 @@
 # This will mark the masked key share as tainted, allowing CellIFT
 # to track how the reconstructed key propagates through AES.
 #
-0 C00 10 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+0 C00 16 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
